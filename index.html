@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
+    <title>Money Simulator | Alphagen Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --purple: #5e48c4;
+            --dark: #4a3aad;
+            --yellow: #ffd071;
+            --pale: #eae7fe;
+            --ghost: #f5f4ff;
+            --control: #ffab19;
+            --operator: #59c059;
+            --looks: #9966ff;
+            --motion: #4c97ff;
+            --sensing: #5cb1d6
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: #100a20;
+            color: #211b30;
+            font-family: Poppins, sans-serif;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh
+        }
+
+        .header {
+            width: min(1280px, 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: var(--purple);
+            color: white;
+            padding: 13px 19px;
+            border-radius: 14px;
+            font-weight: 800
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px
+        }
+
+        .logo {
+            background: var(--yellow);
+            color: #191525;
+            padding: 9px 15px;
+            border-radius: 9px;
+            font-size: 13px
+        }
+
+        .score {
+            background: var(--dark);
+            border-radius: 9px;
+            padding: 9px 15px;
+            font-size: 14px
+        }
+
+        .score span {
+            color: var(--yellow)
+        }
+
+        .wrap {
+            width: 1280px;
+            margin-top: 12px;
+            transform-origin: top center
+        }
+
+        .stage {
+            width: 1280px;
+            height: 720px;
+            background: white;
+            border-radius: 25px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 34px 60px
+        }
+
+        .slide.active {
+            display: flex
+        }
+
+        .badge {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--purple);
+            background: var(--ghost);
+            border: 2px solid var(--pale);
+            border-radius: 25px;
+            padding: 9px 20px;
+            margin-bottom: 17px
+        }
+
+        h1 {
+            font-size: 48px;
+            line-height: 1.22;
+            margin: 9px 0 15px
+        }
+
+        h2 {
+            font-size: 27px;
+            line-height: 1.4;
+            margin: 0
+        }
+
+        .subtitle {
+            font-size: 17px;
+            color: #615c68;
+            margin: 10px 0 24px
+        }
+
+        .question {
+            background: var(--ghost);
+            border: 2px solid var(--pale);
+            border-radius: 20px;
+            padding: 17px 28px;
+            width: 940px;
+            max-width: 100%;
+            margin-bottom: 18px
+        }
+
+        .options {
+            width: 960px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        .option {
+            border: 2px solid var(--pale);
+            background: white;
+            border-radius: 17px;
+            min-height: 99px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 13px;
+            cursor: pointer;
+            font: 700 18px Poppins, sans-serif
+        }
+
+        .option:hover:not(:disabled) {
+            border-color: var(--purple);
+            background: var(--ghost)
+        }
+
+        .option:disabled {
+            cursor: default
+        }
+
+        .option.correct {
+            background: #f0fdf4;
+            border: 3px solid #22c55e
+        }
+
+        .option.wrong {
+            background: #fff0f1;
+            border: 3px solid #ef6671
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 13px;
+            padding: 14px 30px;
+            background: var(--yellow);
+            font: 800 17px Poppins;
+            cursor: pointer
+        }
+
+        .next {
+            background: var(--purple);
+            color: white;
+            visibility: hidden;
+            margin-top: 10px
+        }
+
+        .next.visible {
+            visibility: visible
+        }
+
+        .feedback {
+            min-height: 43px;
+            visibility: hidden;
+            margin-top: 13px;
+            border-radius: 10px;
+            padding: 9px 16px;
+            font-weight: 700;
+            font-size: 14px
+        }
+
+        .feedback.show {
+            visibility: visible;
+            background: #dcfce7;
+            color: #166534
+        }
+
+        .feedback.try {
+            background: #fff0f1;
+            color: #993040
+        }
+
+        .block {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            color: white;
+            border-radius: 7px;
+            font: 500 17px Arial, sans-serif;
+            box-shadow: inset 0 -3px #0002;
+            white-space: nowrap
+        }
+
+        .control {
+            background: var(--control)
+        }
+
+        .operator {
+            background: var(--operator)
+        }
+
+        .looks {
+            background: var(--looks)
+        }
+
+        .motion {
+            background: var(--motion)
+        }
+
+        .sensing {
+            background: var(--sensing)
+        }
+
+        .hex {
+            clip-path: polygon(13px 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 13px 100%, 0 50%);
+            padding: 10px 23px
+        }
+
+        .pill {
+            border-radius: 28px
+        }
+
+        .input {
+            background: white;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 16px
+        }
+
+        .code {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin: 0 0 17px;
+            display: flex;
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 3px;
+            max-width: 900px
+        }
+
+        .indent {
+            margin-left: 25px
+        }
+
+        .scene {
+            font-size: 58px;
+            margin: 12px 0 19px
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 13px
+        }
+
+        .nav button {
+            background: #2a1c68;
+            color: var(--yellow);
+            border: 2px solid var(--purple);
+            border-radius: 11px;
+            padding: 10px 21px;
+            font: 700 14px Poppins;
+            cursor: pointer
+        }
+
+        .nav button:disabled {
+            opacity: .35;
+            cursor: default
+        }
+
+        .final {
+            background: #fff3cc;
+            border: 2px solid var(--yellow);
+            border-radius: 22px;
+            padding: 20px 70px;
+            margin: 16px 0
+        }
+
+        .final strong {
+            display: block;
+            color: var(--purple);
+            font-size: 49px
+        }
+
+        .answer {
+            color: var(--purple);
+            font-size: 20px;
+            font-weight: 800
+        }
+
+        .small {
+            font-size: 14px;
+            color: #716a7a
+        }
+
+        .ocean {
+            width: 350px;
+            height: 115px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #d9f6ff, #7ccdec);
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            font-size: 60px;
+            margin: 10px 0 25px
+        }
+
+        .block.variable {
+            background: #ff8c1a
+        }
+
+        .block.operator {
+            background: #59c059
+        }
+
+        .block.looks {
+            background: #9966ff
+        }
+
+        .block .block {
+            font-size: 17px;
+            min-height: 30px;
+            padding: 4px 9px;
+            box-shadow: none
+        }
+
+        .code {
+            max-width: 900px
+        }
+
+        .option {
+            overflow-wrap: anywhere
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="brand"><span class="logo">ALPHAGEN LEARNING</span><span>Scratch – Money Simulator</span></div>
+        <div class="score">★ Score: <span id="score">0</span> / 50</div>
+    </header>
+    <div class="wrap" id="wrap">
+        <main class="stage">
+            <section class="slide active" id="slide-1">
+                <div class="badge">SCRATCH POST-BREAK QUIZ</div>
+                <h1>Money Simulator<br /><span style="color:var(--purple)">Quick Challenge!</span></h1>
+            </section>
+            <section class="slide" id="slide-2">
+                <div class="badge">QUESTION 1 OF 5 · 10 POINTS</div>
+                <div class="question">
+                    <h2>You have $40. A toy costs $60. What happens?</h2>
+                </div>
+                <div class="code"><span class="block control">if <span class="block operator">40 ≥ 60</span>
+                        then</span><span class="block looks">say Buy the toy!</span><span
+                        class="block control">else</span><span class="block looks">say Save more!</span></div>
+                <div class="options" id="options-1"><button class="option" onclick="answer(1,0,this)">Buy the
+                        toy!</button><button class="option" onclick="answer(1,1,this)">Save more!</button><button
+                        class="option" onclick="answer(1,2,this)">Both messages</button><button class="option"
+                        onclick="answer(1,3,this)">Nothing happens</button></div>
+                <div class="feedback" id="feedback-1"></div><button class="btn next" id="next-1" onclick="go(3)">Next
+                    Question →</button>
+            </section>
+            <section class="slide" id="slide-3">
+                <div class="badge">QUESTION 2 OF 5 · 10 POINTS</div>
+                <div class="question">
+                    <h2>You have $75. Which check says you can buy a $50 game?</h2>
+                </div>
+                <div class="scene small">💵 $75   🛍️ $50</div>
+                <div class="options" id="options-2"><button class="option" onclick="answer(2,0,this)">75 &lt;
+                        50</button><button class="option" onclick="answer(2,1,this)">75 = 50</button><button
+                        class="option" onclick="answer(2,2,this)">75 &gt; 50</button><button class="option"
+                        onclick="answer(2,3,this)">50 &gt; 75</button></div>
+                <div class="feedback" id="feedback-2"></div><button class="btn next" id="next-2" onclick="go(4)">Next
+                    Question →</button>
+            </section>
+            <section class="slide" id="slide-4">
+                <div class="badge">QUESTION 3 OF 5 · 10 POINTS</div>
+                <div class="question">
+                    <h2>The game picks a random bonus from $1 to $5. Which amount is possible?</h2>
+                </div>
+                <div class="code"><span class="block operator">pick random <em>1</em> to <em>5</em></span></div>
+                <div class="options" id="options-3"><button class="option" onclick="answer(3,0,this)">$0</button><button
+                        class="option" onclick="answer(3,1,this)">$3</button><button class="option"
+                        onclick="answer(3,2,this)">$6</button><button class="option"
+                        onclick="answer(3,3,this)">$10</button></div>
+                <div class="feedback" id="feedback-3"></div><button class="btn next" id="next-3" onclick="go(5)">Next
+                    Question →</button>
+            </section>
+            <section class="slide" id="slide-5">
+                <div class="badge">QUESTION 4 OF 5 · 10 POINTS</div>
+                <div class="question">
+                    <h2>A random bonus is added to $20. What can the new total be?</h2>
+                </div>
+                <div class="code"><span class="block variable">set <b>Money</b> to <em>20</em></span><span
+                        class="block variable">change <b>Money</b> by <span class="block operator">pick random
+                            <em>1</em> to <em>3</em></span></span></div>
+                <div class="options" id="options-4"><button class="option"
+                        onclick="answer(4,0,this)">$19</button><button class="option"
+                        onclick="answer(4,1,this)">$20</button><button class="option"
+                        onclick="answer(4,2,this)">$24</button><button class="option"
+                        onclick="answer(4,3,this)">$22</button></div>
+                <div class="feedback" id="feedback-4"></div><button class="btn next" id="next-4" onclick="go(6)">Next
+                    Question →</button>
+            </section>
+            <section class="slide" id="slide-6">
+                <div class="badge">QUESTION 5 OF 5 · 10 POINTS</div>
+                <div class="question">
+                    <h2>The shop sends “Purchase complete!” to the cashier. What should happen next?</h2>
+                </div>
+                <div class="scene small">🛒 Shop <span style="color:var(--purple)">➜ Message ➜</span> 🧑‍💼 Cashier
+                </div>
+                <p class="subtitle">Think about how two characters work together.</p>
+                <div class="options" id="options-5"><button class="option" onclick="answer(5,0,this)">The cashier shows
+                        a receipt</button><button class="option" onclick="answer(5,1,this)">The shop closes the
+                        game</button><button class="option" onclick="answer(5,2,this)">The cashier changes the
+                        price</button><button class="option" onclick="answer(5,3,this)">The customer loses all
+                        money</button></div>
+                <div class="feedback" id="feedback-5"></div><button class="btn next" id="next-5" onclick="go(7)">See My
+                    Score →</button>
+            </section>
+            <section class="slide" id="slide-7">
+                <div class="badge">QUIZ COMPLETE!</div>
+                <h1>Great Job!<br /><span style="color:var(--purple)">Money Master!</span></h1>
+                <div class="final">YOUR SCORE<strong id="final-score">0 / 50</strong></div>
+                <p class="subtitle" id="message">Keep coding and exploring!</p><button class="btn"
+                    onclick="resetQuiz()">↻ Try Again</button>
+            </section>
+        </main>
+        <nav class="nav"><button id="prev" onclick="move(-1)">← Previous</button><span id="counter">Slide 1 /
+                7</span><button id="forward" onclick="move(1)">Next →</button></nav>
+    </div>
+    <script>
+        let current = 1, score = 0, answered = {}; const keys = [1, 2, 1, 3, 0]; const explanations = ['$40 is less than $60, so the ELSE message appears.', '$75 is greater than $50, so there is enough money.', 'A random number from 1 to 5 can be 3.', '$20 plus a random 1, 2 or 3 can become $22.', 'A message can tell another sprite to show the receipt.']; function celebrate(n) { if (typeof confetti === 'function') confetti({ particleCount: n, spread: 70, origin: { y: .65 } }) } function update() { document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i + 1 === current)); document.getElementById('prev').disabled = current === 1; document.getElementById('forward').disabled = current === 7 || (current >= 2 && current <= 6 && !answered[current - 1]); document.getElementById('counter').textContent = `Slide ${current} / 7`; if (current === 7) { document.getElementById('final-score').textContent = score + ' / 50'; document.getElementById('message').textContent = score === 50 ? 'Perfect score! Amazing work!' : score >= 30 ? 'Wonderful work! Keep creating!' : 'Good effort! Every try helps you learn!'; celebrate(110) } } function go(n) { if (n < 1 || n > 7) return; if (n > current && current >= 2 && current <= 6 && !answered[current - 1]) return; current = n; update() } function move(d) { go(current + d) } function answer(q, choice, btn) { if (answered[q]) return; answered[q] = true; const correct = choice === keys[q - 1]; const opts = [...document.querySelectorAll('#options-' + q + ' .option')]; opts.forEach(o => o.disabled = true); btn.classList.add(correct ? 'correct' : 'wrong'); if (!correct) opts[keys[q - 1]].classList.add('correct'); if (correct) { score += 10; document.getElementById('score').textContent = score; celebrate(35) } const fb = document.getElementById('feedback-' + q); fb.className = 'feedback show' + (correct ? '' : ' try'); fb.textContent = (correct ? 'Great! +10 points. ' : 'Good try! ') + explanations[q - 1]; document.getElementById('next-' + q).classList.add('visible'); update() } function resetQuiz() { score = 0; answered = {}; document.getElementById('score').textContent = '0'; for (let q = 1; q <= 5; q++) { document.querySelectorAll('#options-' + q + ' .option').forEach(o => { o.disabled = false; o.classList.remove('correct', 'wrong') }); const fb = document.getElementById('feedback-' + q); fb.className = 'feedback'; fb.textContent = ''; document.getElementById('next-' + q).classList.remove('visible') } current = 1; update() } function scale() { const s = Math.min(1, (innerWidth - 24) / 1280); const w = document.getElementById('wrap'); w.style.transform = `scale(${s})`; w.style.marginBottom = (732 * s - 732) + 'px' } window.addEventListener('resize', scale); document.addEventListener('keydown', e => { if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return; if (e.key === 'ArrowRight') move(1); if (e.key === 'ArrowLeft') move(-1) }); scale(); update();
+    </script>
+</body>
+
+</html>
